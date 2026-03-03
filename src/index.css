@@ -1,0 +1,114 @@
+/* src/index.css - Gravity Flip: Premium Edition */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0f172a;
+    /* Slate 900 */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* ── Premium UI Utilities ─────────────────────────────────── */
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  /* Slate 900 with alpha */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.premium-gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  /* Indigo 500 to Purple 500 */
+}
+
+.premium-gradient-hover:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── UI Elements ────────────────────────────────────────── */
+
+.modal-backdrop {
+  background: rgba(2, 6, 23, 0.8);
+  /* Slate 950 */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Animations ─────────────────────────────────────────── */
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-in-scale {
+  animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  /* Slate 700 */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+  /* Slate 600 */
+}
