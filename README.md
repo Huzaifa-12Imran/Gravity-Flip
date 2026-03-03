@@ -1,16 +1,57 @@
-# React + Vite
+# Gravity Flip: Premium Edition 🚀
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A high-performance, visually stunning "Stay on the Path" game built with **React**, **Phaser 3**, and **Tailwind CSS**. Experience a sleek, slate-themed aesthetic with fluid skeletal animations and dynamic gameplay.
 
-Currently, two official plugins are available:
+## 🌟 Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🕺 Advanced Skeletal Animation
+- **Jointed Stickman**: Features a custom skeletal system with bending knees, elbows, and torso bobbing.
+- **Dynamic Run Cycle**: Animation speed automatically synchronizes with the game's scrolling velocity for a seamless feel.
+- **Improved Physics**: Refined collision boxes and smooth gravity transitions.
 
-## React Compiler
+### 🧱 Dynamic Obstacles & Platforms
+- **Strategic Navigation**: Dodge solid Slate walls while utilizing Amber platforms to stay alive.
+- **Platform Surfing**: Land on and run across floating platforms to navigate complex patterns.
+- **Automated Realignment**: Character naturally falls back to the main lanes when leaving a platform.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 💎 Premium Interface
+- **Modern Homepage**: A high-end landing page with glassmorphism effects and personal best tracking.
+- **Interactive HUD**: Real-time score, distance, and multiplier tracking with visual feedback.
+- **Pause System**: Toggle the session at any time using the [ESC] key or the on-screen pause menu.
+- **Character Customizer**: Change your stickman's color on the fly during gameplay.
 
-## Expanding the ESLint configuration
+## 🎮 Controls
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Action | PC | Touch |
+| :--- | :--- | :--- |
+| **Shift Gravity** | [SPACE] | Tap Screen |
+| **Pause Game** | [ESC] | Pause Button |
+| **Navigate Menu** | Mouse Click | Tap |
+
+## 🛠️ Technical Stack
+
+- **Core**: React 18, Vite
+- **Game Engine**: Phaser 3.80+
+- **Styling**: Tailwind CSS (Premium Slate & Indigo Palette)
+- **State Management**: Phaser EventBus (React <-> Phaser bridge)
+- **Storage**: LocalStorage for persistent high scores
+
+## 🚀 Getting Started
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Build for Production**:
+   ```bash
+   npm run build
+   ```
+
+---
+*Developed with focus on visual excellence and smooth gameplay mechanics.*
