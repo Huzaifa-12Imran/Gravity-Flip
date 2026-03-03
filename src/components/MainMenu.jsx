@@ -1,6 +1,7 @@
 // src/components/MainMenu.jsx
 // Premium Main Menu (Homepage) for the game.
 import { useState, useEffect } from 'react';
+import AudioManager from '../phaser/managers/AudioManager';
 
 export default function MainMenu({ onStart }) {
     const [highScore, setHighScore] = useState(0);
@@ -44,7 +45,11 @@ export default function MainMenu({ onStart }) {
 
                     {/* Start Action */}
                     <button
-                        onClick={onStart}
+                        onClick={() => {
+                            AudioManager.playStart();
+                            onStart();
+                        }}
+                        onMouseEnter={() => AudioManager.playBlip(440, 0.05)}
                         className="md:col-span-2 bento-card p-1 text-left premium-gradient group cursor-pointer"
                     >
                         <div className="w-full h-full bg-slate-950/20 group-hover:bg-transparent transition-colors p-6 md:p-8 rounded-[1.4rem] flex flex-col justify-between min-h-[140px] md:min-h-[160px]">

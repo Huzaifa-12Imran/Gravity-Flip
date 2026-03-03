@@ -1,5 +1,6 @@
 // src/components/PauseMenu.jsx
 import React from 'react';
+import AudioManager from '../phaser/managers/AudioManager';
 
 export default function PauseMenu({ onResume, onQuit }) {
     return (
@@ -26,7 +27,10 @@ export default function PauseMenu({ onResume, onQuit }) {
                 {/* Actions */}
                 <div className="w-full flex flex-col gap-3">
                     <button
-                        onClick={onResume}
+                        onClick={() => {
+                            AudioManager.playBlip(660);
+                            onResume();
+                        }}
                         className="w-full py-5 rounded-2xl text-base font-black tracking-[0.3em] uppercase 
                                  premium-gradient text-white shadow-lg shadow-indigo-500/20
                                  transition-all duration-200 active:scale-95 group relative overflow-hidden"
@@ -36,7 +40,10 @@ export default function PauseMenu({ onResume, onQuit }) {
                     </button>
 
                     <button
-                        onClick={onQuit}
+                        onClick={() => {
+                            AudioManager.playBlip(440);
+                            onQuit();
+                        }}
                         className="w-full py-5 rounded-2xl text-base font-black tracking-[0.3em] uppercase 
                                  bg-white/5 text-slate-400 border border-white/5
                                  hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20

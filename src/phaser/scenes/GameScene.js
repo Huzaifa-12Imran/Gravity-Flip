@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 import EventBus from '../../eventBus';
 import Stickman from '../entities/Stickman';
 import ObstacleManager from '../managers/ObstacleManager';
+import AudioManager from '../managers/AudioManager';
 
 const STICKMAN_X = 180;
 const FLOOR_Y = 480;
@@ -109,6 +110,7 @@ export default class GameScene extends Phaser.Scene {
 
     _startCountdown() {
         this.gameStarted = true;
+        AudioManager.playStart();
         this.time.delayedCall(400, () => {
             this.obstacleManager.start();
             EventBus.emit('game-started');
@@ -116,13 +118,16 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _onFlip(isAutomatic = false) {
-        if (this.isGameOver || this.deathSequenceStarted) return;
+        if (this.isGameOver || this.deathSequenceStarted || !this.gameStarted) return;
 
         // Phaser events (pointerdown, keydown) pass an event object.
         // We only want to skip the flip logic IF we explicitly pass boolean 'true'.
         if (isAutomatic !== true) {
             this.gravityFlipped = !this.gravityFlipped;
-            this.stickman.flipGravity();
+            const success = this.stickman.flipGravity();
+            if (success) {
+                AudioManager.playFlip(this.stickman.isFlipped);
+            }
             this._wasOnPlatform = false;
         }
 
@@ -264,6 +269,8 @@ export default class GameScene extends Phaser.Scene {
         if (this.isGameOver || this.deathSequenceStarted) return;
         this.deathSequenceStarted = true;
         this.isGameOver = true;
+
+        AudioManager.playShatter();
 
         this.input.keyboard.off('keydown-SPACE', this._flipHandler);
         this.input.off('pointerdown', this._flipHandler);
