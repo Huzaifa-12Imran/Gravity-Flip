@@ -111,6 +111,7 @@ export default class GameScene extends Phaser.Scene {
     _startCountdown() {
         this.gameStarted = true;
         AudioManager.playStart();
+        AudioManager.startMusic();
         this.time.delayedCall(400, () => {
             this.obstacleManager.start();
             EventBus.emit('game-started');
@@ -271,6 +272,7 @@ export default class GameScene extends Phaser.Scene {
         this.isGameOver = true;
 
         AudioManager.playShatter();
+        AudioManager.stopMusic();
 
         this.input.keyboard.off('keydown-SPACE', this._flipHandler);
         this.input.off('pointerdown', this._flipHandler);

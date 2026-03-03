@@ -108,6 +108,74 @@ class AudioManager {
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
     }
+
+    // --- Procedural Music System ---
+
+    _initMusic() {
+        if (this.musicGain) return;
+        this.musicGain = this.ctx.createGain();
+        this.musicGain.connect(this.ctx.destination);
+        this.musicGain.gain.setValueAtTime(0, this.ctx.currentTime);
+        this.isMusicPlaying = false;
+        this.beatInterval = 0.4; // Seconds per beat
+        this.currentNote = 0;
+    }
+
+    startMusic() {
+        this._init();
+        this._initMusic();
+        if (this.isMusicPlaying) return;
+
+        this.isMusicPlaying = true;
+        this.musicGain.gain.linearRampToValueAtTime(this.masterVolume * 0.4, this.ctx.currentTime + 1);
+        this._scheduleNextBeat();
+    }
+
+    stopMusic() {
+        if (!this.isMusicPlaying) return;
+        this.isMusicPlaying = false;
+        if (this.musicGain) {
+            this.musicGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
+        }
+    }
+
+    _scheduleNextBeat() {
+        if (!this.isMusicPlaying) return;
+
+        const time = this.ctx.currentTime;
+        this._playNote(time);
+
+        // Schedule next beat
+        setTimeout(() => this._scheduleNextBeat(), this.beatInterval * 1000);
+    }
+
+    _playNote(time) {
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        // Cyber sequence pattern: Root, Root, Octave, Fifth
+        const pattern = [55, 55, 110, 82.4]; // A1, A1, A2, E2 (approx)
+        const freq = pattern[this.currentNote % pattern.length];
+        this.currentNote++;
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, time);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(300, time);
+        filter.frequency.exponentialRampToValueAtTime(100, time + this.beatInterval * 0.8);
+
+        g.gain.setValueAtTime(0.3, time);
+        g.gain.exponentialRampToValueAtTime(0.01, time + this.beatInterval * 0.9);
+
+        osc.connect(filter);
+        filter.connect(g);
+        g.connect(this.musicGain);
+
+        osc.start(time);
+        osc.stop(time + this.beatInterval);
+    }
 }
 
 export default new AudioManager();
