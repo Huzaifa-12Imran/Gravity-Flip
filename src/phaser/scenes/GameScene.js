@@ -31,6 +31,7 @@ export default class GameScene extends Phaser.Scene {
         this.multiplier = 1;
         this.distance = 0;
         this.frameCount = 0;
+        this.gameStarted = false;
 
         // ── Visual Background ───────────────────────────────────────
         this.cameras.main.setBackgroundColor('#020617'); // Slate 950
@@ -54,7 +55,7 @@ export default class GameScene extends Phaser.Scene {
             // Cinematic Atmosphere: Multi-layered particles for depth
             this._initParticles();
 
-            this.stickman = new Stickman(this, 150, this.sys.game.config.height / 2);
+            this.stickman = new Stickman(this, STICKMAN_X, FLOOR_Y);
             console.log('[GameScene] Initializing ObstacleManager...');
             this.obstacleManager = new ObstacleManager(this);
         } catch (e) {
@@ -106,6 +107,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _startCountdown() {
+        this.gameStarted = true;
         this.time.delayedCall(400, () => {
             this.obstacleManager.start();
             EventBus.emit('game-started');
@@ -193,7 +195,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _tickScore() {
-        if (this.isGameOver || this.deathSequenceStarted) return;
+        if (!this.gameStarted || this.isGameOver || this.deathSequenceStarted) return;
         this.score += Math.round(this.multiplier);
         this.distance += (this.obstacleManager.getScrollSpeed() / 1200).toFixed(2) * 1;
         EventBus.emit('score-update', {
@@ -284,23 +286,24 @@ export default class GameScene extends Phaser.Scene {
     update(time, delta) {
         if (this.isGameOver || this.deathSequenceStarted) return;
 
-        this.frameCount++;
-        const W = this.scale.width;
-        const speed = this.obstacleManager.getScrollSpeed();
+        if (this.gameStarted) {
+            this.frameCount++;
+            const W = this.scale.width;
+            const speed = this.obstacleManager.getScrollSpeed();
 
-        this._cityOffset = (this._cityOffset + speed * 0.1 * (delta / 1000)) % W;
-        this._gridOffset = (this._gridOffset + speed * 0.4 * (delta / 1000)) % W;
+            this._cityOffset = (this._cityOffset + speed * 0.1 * (delta / 1000)) % W;
+            this._gridOffset = (this._gridOffset + speed * 0.4 * (delta / 1000)) % W;
 
-        this.cityFar1.x = -this._cityOffset;
-        this.cityFar2.x = W - this._cityOffset;
-        this.grid1.x = -this._gridOffset;
-        this.grid2.x = W - this._gridOffset;
+            this.cityFar1.x = -this._cityOffset;
+            this.cityFar2.x = W - this._cityOffset;
+            this.grid1.x = -this._gridOffset;
+            this.grid2.x = W - this._gridOffset;
+
+            this.obstacleManager.update();
+            this._checkCollisions();
+        }
 
         this.stickman.update();
-        this.obstacleManager.update();
-
-        // Run collision check EVERY frame for platforms to prevent phasing
-        this._checkCollisions();
     }
 
     shutdown() {

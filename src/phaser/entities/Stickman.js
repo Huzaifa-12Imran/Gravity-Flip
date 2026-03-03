@@ -215,7 +215,7 @@ export default class Stickman {
 
         // Advance animation phase based on current scroll speed
         const speed = this.scene.obstacleManager ? this.scene.obstacleManager.getScrollSpeed() : 300;
-        const phaseIncrement = (speed / 1000) * 0.08;
+        const phaseIncrement = (this.scene.gameStarted ? (speed / 1000) * 0.08 : 0);
         this.animPhase = (this.animPhase + phaseIncrement) % 1;
 
         // Update trail
