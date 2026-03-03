@@ -103,6 +103,7 @@ export default function App() {
 
   const handleQuit = useCallback(() => {
     EventBus.emit('resume-game'); // Ensure Phaser is unpaused
+    EventBus.emit('quit-game');   // Tell Phaser to reset to menu state
     setGameState('menu');
     setIsPaused(false);
   }, []);

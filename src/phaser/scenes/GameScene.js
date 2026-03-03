@@ -87,6 +87,7 @@ export default class GameScene extends Phaser.Scene {
         EventBus.on('game-restart', this._restartHandler);
         EventBus.on('pause-game', this._handlePause, this);
         EventBus.on('resume-game', this._handleResume, this);
+        EventBus.on('quit-game', this._onQuit, this);
 
         this.scoreTicker = this.time.addEvent({
             delay: 50,
@@ -181,6 +182,11 @@ export default class GameScene extends Phaser.Scene {
     _onStarted() {
         console.log('[GameScene] Restarting with autoStart: true');
         this.scene.restart({ autoStart: true });
+    }
+
+    _onQuit() {
+        console.log('[GameScene] Terminating session, returning to stable menu state');
+        this.scene.restart({ autoStart: false });
     }
 
     _handlePause() {
@@ -314,6 +320,7 @@ export default class GameScene extends Phaser.Scene {
         EventBus.off('start-game', this._startGameHandler);
         EventBus.off('pause-game', this._handlePause, this);
         EventBus.off('resume-game', this._handleResume, this);
+        EventBus.off('quit-game', this._onQuit, this);
         if (this.scoreTicker) {
             this.scoreTicker.remove();
             this.scoreTicker = null;
