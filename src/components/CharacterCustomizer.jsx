@@ -40,34 +40,34 @@ export default function CharacterCustomizer({ visible }) {
 
             {/* Sidebar Panel */}
             <div
-                className={`absolute right-12 top-1/2 -translate-y-1/2 z-40 w-64
-                          glass-panel rounded-3xl p-8 flex flex-col gap-6
+                className={`absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-40 w-48 md:w-64
+                          glass-panel rounded-3xl p-4 md:p-8 flex flex-col gap-4 md:gap-6
                           ${isOpen ? 'slide-in' : 'hidden'}
                            shadow-[0_20px_50px_rgba(0,0,0,0.5)]`}
             >
                 <div className="flex flex-col items-start gap-1">
-                    <span className="text-[10px] font-black text-slate-500 tracking-[0.4em] uppercase">
+                    <span className="text-[8px] md:text-[10px] font-black text-slate-500 tracking-[0.3em] md:tracking-[0.4em] uppercase">
                         Configuration
                     </span>
-                    <h2 className="text-xl font-black text-white tracking-tight">
+                    <h2 className="text-lg md:text-xl font-black text-white tracking-tight">
                         Visual ID
                     </h2>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                     {PALETTE.map(({ label, hex, bg }) => {
                         const isActive = selected === hex;
                         return (
                             <button
                                 key={hex}
                                 onClick={() => handleSelect(hex)}
-                                className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-300
+                                className={`flex flex-col items-center gap-1.5 md:gap-2 p-2 md:p-3 rounded-xl md:rounded-2xl transition-all duration-300
                                            ${isActive
                                         ? 'bg-white/10 ring-2 ring-indigo-500/50 scale-105'
-                                        : 'bg-white/5 hover:bg-white/10 hover:scale-102'}`}
+                                        : 'bg-white/5 hover:bg-white/10'}`}
                             >
-                                <div className={`w-10 h-10 rounded-xl ${bg} shadow-lg`} />
-                                <span className={`text-[10px] font-bold tracking-wider ${isActive ? 'text-white' : 'text-slate-500'}`}>
+                                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl ${bg} shadow-lg`} />
+                                <span className={`text-[8px] md:text-[10px] font-bold tracking-wider ${isActive ? 'text-white' : 'text-slate-500'}`}>
                                     {label}
                                 </span>
                             </button>

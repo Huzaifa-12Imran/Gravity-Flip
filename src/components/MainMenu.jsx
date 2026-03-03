@@ -29,10 +29,10 @@ export default function MainMenu({ onStart }) {
                     </div>
 
                     <div className="relative flex flex-col">
-                        <h1 className="text-8xl sm:text-[120px] font-black tracking-tighter leading-[0.85] text-white italic drop-shadow-2xl">
+                        <h1 className="text-6xl sm:text-8xl md:text-[120px] font-black tracking-tighter leading-[0.85] text-white italic drop-shadow-2xl">
                             GRAVITY
                         </h1>
-                        <h1 className="text-8xl sm:text-[120px] font-black tracking-tighter leading-[0.85] text-indigo-500 italic mix-blend-screen opacity-90">
+                        <h1 className="text-6xl sm:text-8xl md:text-[120px] font-black tracking-tighter leading-[0.85] text-indigo-500 italic mix-blend-screen opacity-90">
                             FLIP
                         </h1>
                         <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-px h-32 bg-gradient-to-b from-transparent via-indigo-500/50 to-transparent hidden lg:block" />
@@ -40,23 +40,23 @@ export default function MainMenu({ onStart }) {
                 </div>
 
                 {/* Primary Bento Layout */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
 
                     {/* Start Action */}
                     <button
                         onClick={onStart}
                         className="md:col-span-2 bento-card p-1 text-left premium-gradient group cursor-pointer"
                     >
-                        <div className="w-full h-full bg-slate-950/20 group-hover:bg-transparent transition-colors p-8 rounded-[1.4rem] flex flex-col justify-between min-h-[160px]">
-                            <span className="text-[10px] font-black tracking-[0.5em] text-white/50 uppercase group-hover:text-white transition-colors">
+                        <div className="w-full h-full bg-slate-950/20 group-hover:bg-transparent transition-colors p-6 md:p-8 rounded-[1.4rem] flex flex-col justify-between min-h-[140px] md:min-h-[160px]">
+                            <span className="text-[9px] md:text-[10px] font-black tracking-[0.3em] md:tracking-[0.5em] text-white/50 uppercase group-hover:text-white transition-colors">
                                 Initiate Simulation
                             </span>
                             <div className="flex items-end justify-between">
-                                <h3 className="text-4xl font-black text-white italic tracking-tighter">
+                                <h3 className="text-2xl md:text-4xl font-black text-white italic tracking-tighter">
                                     RUN PROTOCOL
                                 </h3>
-                                <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-all">
-                                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white group-hover:fill-indigo-600 transition-colors">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white/20 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-all">
+                                    <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6 fill-white group-hover:fill-indigo-600 transition-colors">
                                         <path d="M8 5v14l11-7z" />
                                     </svg>
                                 </div>
@@ -65,20 +65,20 @@ export default function MainMenu({ onStart }) {
                     </button>
 
                     {/* Personal Best Card */}
-                    <div className="bento-card p-8 flex flex-col justify-between min-h-[160px]">
-                        <span className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">
+                    <div className="bento-card p-6 md:p-8 flex flex-col justify-between min-h-[120px] md:min-h-[160px]">
+                        <span className="text-[9px] md:text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">
                             Archived Data
                         </span>
                         <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-slate-600 uppercase mb-1">High Score</span>
-                            <span className="text-4xl font-black text-white tracking-tighter">
+                            <span className="text-3xl md:text-4xl font-black text-white tracking-tighter">
                                 {highScore.toLocaleString()}
                             </span>
                         </div>
                     </div>
 
-                    {/* Inputs Card */}
-                    <div className="bento-card p-8 flex flex-col gap-6 bg-slate-400/5">
+                    {/* Inputs Card (Hidden on small screens) */}
+                    <div className="hidden sm:flex bento-card p-8 flex flex-col gap-6 bg-slate-400/5">
                         <span className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">
                             Input Interface
                         </span>
@@ -95,16 +95,16 @@ export default function MainMenu({ onStart }) {
                     </div>
 
                     {/* Status Quote Card */}
-                    <div className="md:col-span-2 bento-card p-8 flex items-center justify-between bg-emerald-500/5 border-emerald-500/10">
+                    <div className="md:col-span-2 bento-card p-6 md:p-8 flex items-center justify-between bg-emerald-500/5 border-emerald-500/10">
                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-emerald-400 tracking-[0.4em] uppercase mb-1">
+                            <span className="text-[8px] md:text-[9px] font-black text-emerald-400 tracking-[0.3em] md:tracking-[0.4em] uppercase mb-1">
                                 Operational Status
                             </span>
-                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest italic">
+                            <p className="text-[9px] md:text-[11px] text-slate-400 font-bold uppercase tracking-widest italic">
                                 "Neural link synchronized. Environment verification complete."
                             </p>
                         </div>
-                        <div className="hidden sm:flex items-center gap-1">
+                        <div className="hidden md:flex items-center gap-1">
                             {[0, 1, 2, 3].map(i => (
                                 <div key={i} className="w-1 h-4 bg-emerald-500/20 rounded-full" />
                             ))}
