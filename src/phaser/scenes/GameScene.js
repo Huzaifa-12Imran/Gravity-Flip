@@ -51,7 +51,10 @@ export default class GameScene extends Phaser.Scene {
         // Entities
         try {
             console.log('[GameScene] Initializing Stickman...');
-            this.stickman = new Stickman(this, STICKMAN_X, FLOOR_Y);
+            // Cinematic Atmosphere: Multi-layered particles for depth
+            this._initParticles();
+
+            this.stickman = new Stickman(this, 150, this.sys.game.config.height / 2);
             console.log('[GameScene] Initializing ObstacleManager...');
             this.obstacleManager = new ObstacleManager(this);
         } catch (e) {
@@ -74,7 +77,7 @@ export default class GameScene extends Phaser.Scene {
         // Input
         this._flipHandler = this._onFlip.bind(this);
         this._colorChangeHandler = this._onColorChange.bind(this);
-        this._restartHandler = this._onRestart.bind(this);
+        this._restartHandler = this._onStarted.bind(this);
 
         this.input.keyboard.on('keydown-SPACE', this._flipHandler);
         this.input.on('pointerdown', this._flipHandler);
@@ -143,7 +146,37 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    _onRestart() {
+    _initParticles() {
+        // 1. Distant Star/Dust particles (Slow)
+        this.add.particles(0, 0, 'particle', {
+            x: { min: 0, max: 1200 },
+            y: { min: 0, max: 600 },
+            scale: { min: 0.1, max: 0.3 },
+            alpha: { min: 0.1, max: 0.3 },
+            speedX: { min: -10, max: -5 },
+            lifespan: 10000,
+            quantity: 0.5,
+            frequency: 100,
+            emitZone: { type: 'random', source: new Phaser.Geom.Rectangle(1200, 0, 100, 600) }
+        }).setDepth(1);
+
+        // 2. High-speed "Neural Flow" lines
+        this.flowParticles = this.add.particles(0, 0, 'particle', {
+            x: 1200,
+            y: { min: 50, max: 550 },
+            scaleX: { min: 2, max: 5 },
+            scaleY: 0.1,
+            alpha: { start: 0.2, end: 0 },
+            speedX: { min: -1500, max: -800 },
+            lifespan: 1500,
+            quantity: 1,
+            frequency: 50,
+            tint: 0x6366f1
+        });
+        this.flowParticles.setDepth(2);
+    }
+
+    _onStarted() {
         console.log('[GameScene] Restarting with autoStart: true');
         this.scene.restart({ autoStart: true });
     }

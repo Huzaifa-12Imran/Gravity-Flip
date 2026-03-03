@@ -30,6 +30,12 @@ export default class Stickman {
         this.isDead = false;
         this.yScale = 1; // 1 for floor, -1 for ceiling
         this.flipTween = null;
+
+        // Phantom Trail System
+        this.trail = [];
+        this.maxTrail = 12;
+        this.trailGraphics = scene.add.graphics();
+        this.trailGraphics.setDepth(9); // Just below the main character
     }
 
     setColor(hexString) {
@@ -78,7 +84,42 @@ export default class Stickman {
             onComplete: () => this.gfx.clear(),
         });
 
+        this.trailGraphics.clear();
         this.body.destroy();
+    }
+
+    _drawPhantomTrail() {
+        if (this.isDead) return;
+        const tg = this.trailGraphics;
+        tg.clear();
+
+        const speed = this.scene.obstacleManager ? this.scene.obstacleManager.getScrollSpeed() : 300;
+        // Only show trail at high momentum
+        if (speed < 400) return;
+
+        const baseAlpha = Math.min((speed - 400) / 600, 0.4);
+
+        this.trail.forEach((snapshot, i) => {
+            const alpha = (i / this.trail.length) * baseAlpha;
+            tg.lineStyle(2, this.color, alpha);
+
+            // Draw head
+            const hPos = this._getSnapshotPos(snapshot, 0, -22);
+            tg.strokeCircle(hPos.x, hPos.y, 6);
+
+            // Draw simple torso line for trail
+            const nPos = this._getSnapshotPos(snapshot, 0, -15);
+            const wPos = this._getSnapshotPos(snapshot, 0, 8);
+            tg.lineBetween(nPos.x, nPos.y, wPos.x, wPos.y);
+        });
+    }
+
+    _getSnapshotPos(snapshot, dx, dy) {
+        const bob = Math.sin(snapshot.phase * Math.PI * 2 * 2) * 3.5;
+        return {
+            x: snapshot.x + dx,
+            y: (snapshot.y + (snapshot.scale * bob)) + dy * snapshot.scale
+        };
     }
 
     _drawStickman() {
@@ -177,6 +218,16 @@ export default class Stickman {
         const phaseIncrement = (speed / 1000) * 0.08;
         this.animPhase = (this.animPhase + phaseIncrement) % 1;
 
+        // Update trail
+        this.trail.push({
+            x: this.body.x,
+            y: this.body.y,
+            phase: this.animPhase,
+            scale: this.yScale
+        });
+        if (this.trail.length > this.maxTrail) this.trail.shift();
+
+        this._drawPhantomTrail();
         this._drawStickman();
     }
 
@@ -185,6 +236,7 @@ export default class Stickman {
     destroy() {
         if (this.flipTween) this.flipTween.stop();
         this.gfx.destroy();
+        this.trailGraphics.destroy();
         if (this.body && this.body.active) this.body.destroy();
     }
 }

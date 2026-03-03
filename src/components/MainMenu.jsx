@@ -11,66 +11,106 @@ export default function MainMenu({ onStart }) {
     }, []);
 
     return (
-        <div className="absolute inset-0 z-50 flex items-center justify-center modal-backdrop">
-            <div className="glass-panel w-[500px] max-w-[95vw] p-12 rounded-[2.5rem] border border-white/10 flex flex-col items-center gap-10 shadow-2xl fade-in-scale">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 sm:p-12 overflow-y-auto">
+            {/* Background cinematic glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
 
-                {/* Brand Section */}
-                <div className="flex flex-col items-center gap-3">
-                    <div className="px-4 py-1.5 rounded-full bg-slate-800 border border-white/5 mb-2">
-                        <span className="text-[11px] font-black text-slate-500 tracking-[0.5em] uppercase">
-                            Premium Interface v1.2
-                        </span>
+            <div className="relative w-full max-w-[1000px] flex flex-col gap-8 fade-in-scale">
+
+                {/* Brand Header */}
+                <div className="flex flex-col items-start gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="px-4 py-1 rounded-full bg-white/5 border border-white/5 flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                            <span className="text-[10px] font-black text-slate-500 tracking-[0.4em] uppercase">
+                                Build 04.22 // Protocol Secured
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex flex-col items-center">
-                        <h1 className="text-7xl font-black text-white tracking-tighter leading-none italic">
+
+                    <div className="relative flex flex-col">
+                        <h1 className="text-8xl sm:text-[120px] font-black tracking-tighter leading-[0.85] text-white italic drop-shadow-2xl">
                             GRAVITY
                         </h1>
-                        <h1 className="text-7xl font-black text-indigo-400 tracking-tighter leading-none -mt-2">
+                        <h1 className="text-8xl sm:text-[120px] font-black tracking-tighter leading-[0.85] text-indigo-500 italic mix-blend-screen opacity-90">
                             FLIP
                         </h1>
+                        <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-px h-32 bg-gradient-to-b from-transparent via-indigo-500/50 to-transparent hidden lg:block" />
                     </div>
                 </div>
 
-                {/* Status/Score Bar */}
-                <div className="w-full flex justify-center gap-4">
-                    <div className="px-6 py-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center min-w-[120px]">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">System Status</span>
-                        <span className="text-emerald-400 text-sm font-black">ONLINE</span>
-                    </div>
-                    <div className="px-6 py-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center min-w-[120px]">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Personal Best</span>
-                        <span className="text-white text-sm font-black">{highScore.toLocaleString()}</span>
-                    </div>
-                </div>
+                {/* Primary Bento Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                {/* Primary Action */}
-                <div className="w-full flex flex-col gap-4">
+                    {/* Start Action */}
                     <button
                         onClick={onStart}
-                        className="w-full py-6 rounded-2xl text-lg font-black tracking-[0.4em] uppercase 
-                                 premium-gradient text-white shadow-xl shadow-indigo-500/20
-                                 premium-gradient-hover transition-all duration-300 active:scale-95 
-                                 group relative overflow-hidden"
+                        className="md:col-span-2 bento-card p-1 text-left premium-gradient group cursor-pointer"
                     >
-                        <span className="relative z-10">INITIATE SESSION</span>
-                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="w-full h-full bg-slate-950/20 group-hover:bg-transparent transition-colors p-8 rounded-[1.4rem] flex flex-col justify-between min-h-[160px]">
+                            <span className="text-[10px] font-black tracking-[0.5em] text-white/50 uppercase group-hover:text-white transition-colors">
+                                Initiate Simulation
+                            </span>
+                            <div className="flex items-end justify-between">
+                                <h3 className="text-4xl font-black text-white italic tracking-tighter">
+                                    RUN PROTOCOL
+                                </h3>
+                                <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-all">
+                                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white group-hover:fill-indigo-600 transition-colors">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
                     </button>
 
-                    <p className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.2em] text-center">
-                        Secure connection established...
-                    </p>
-                </div>
+                    {/* Personal Best Card */}
+                    <div className="bento-card p-8 flex flex-col justify-between min-h-[160px]">
+                        <span className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">
+                            Archived Data
+                        </span>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-slate-600 uppercase mb-1">High Score</span>
+                            <span className="text-4xl font-black text-white tracking-tighter">
+                                {highScore.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
 
-                {/* Footer Controls */}
-                <div className="grid grid-cols-2 gap-8 pt-6 border-t border-white/5 w-full">
-                    <div className="flex flex-col items-center gap-1">
-                        <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">PC Input</span>
-                        <span className="text-[10px] text-slate-400 font-bold">[SPACE]</span>
+                    {/* Inputs Card */}
+                    <div className="bento-card p-8 flex flex-col gap-6 bg-slate-400/5">
+                        <span className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">
+                            Input Interface
+                        </span>
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">Primary / Space</span>
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">Touch / Tap</span>
+                                <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex flex-col items-center gap-1">
-                        <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">Touch Input</span>
-                        <span className="text-[10px] text-slate-400 font-bold">[TAP SCREEN]</span>
+
+                    {/* Status Quote Card */}
+                    <div className="md:col-span-2 bento-card p-8 flex items-center justify-between bg-emerald-500/5 border-emerald-500/10">
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-emerald-400 tracking-[0.4em] uppercase mb-1">
+                                Operational Status
+                            </span>
+                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest italic">
+                                "Neural link synchronized. Environment verification complete."
+                            </p>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-1">
+                            {[0, 1, 2, 3].map(i => (
+                                <div key={i} className="w-1 h-4 bg-emerald-500/20 rounded-full" />
+                            ))}
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>

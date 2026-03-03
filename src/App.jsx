@@ -113,7 +113,16 @@ export default function App() {
       className="relative w-screen h-screen overflow-hidden bg-[#0f172a] font-inter"
     >
       {/* ── Phaser Canvas ─────────────────────────────────────── */}
-      <PhaserGame />
+      {/* ── Mesh Atmosphere (Dynamic Background) ───────────────── */}
+      <div className="mesh-atmosphere" />
+
+      {/* ── Phaser Canvas ─────────────────────────────────────── */}
+      <div className="relative z-10 w-full h-full">
+        <PhaserGame />
+      </div>
+
+      {/* ── Cinematic Grain / Noise Overlay ────────────────────── */}
+      <div className="absolute inset-0 pointer-events-none z-20 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
       {/* ── Soft Vignette (Visual Overlay) ────────────────────── */}
       <div
@@ -174,11 +183,19 @@ export default function App() {
       )}
 
       {/* ── Help Hint (only when playing) ──────────────────────── */}
-      {gameState === 'playing' && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 pointer-events-none glass-panel px-8 py-3 rounded-full border border-white/5 animate-bounce shadow-xl">
-          <span className="text-[11px] text-white font-black tracking-[0.2em] uppercase">
-            [SPACE] / [TAP] TO SHIFT
-          </span>
+      {gameState === 'playing' && !isPaused && (
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 pointer-events-none fade-in-scale">
+          <div className="bento-card px-8 py-3 rounded-full border border-white/10 flex items-center gap-4">
+            <div className="flex gap-2">
+              <span className="px-2 py-0.5 rounded bg-indigo-500 text-[10px] font-black text-white">SPACE</span>
+              <span className="text-[10px] font-black text-slate-500">OR</span>
+              <span className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-black text-slate-300">TAP</span>
+            </div>
+            <div className="w-px h-3 bg-white/10" />
+            <span className="text-[10px] text-white font-black tracking-[0.2em] uppercase italic">
+              TO SHIFT GRAVITY
+            </span>
+          </div>
         </div>
       )}
     </div>
