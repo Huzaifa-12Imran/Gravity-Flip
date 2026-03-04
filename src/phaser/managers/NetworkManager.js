@@ -10,8 +10,8 @@ class NetworkManager {
         this.players = []; // All players in room
         this.isConnected = false;
 
-        // Backend URL (Matches server/index.js)
-        this.serverUrl = 'http://localhost:3001';
+        // Backend URL (Supports VITE_SERVER_URL environment variable for production)
+        this.serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
         EventBus.on('color-change', (color) => {
             if (this.player) {
