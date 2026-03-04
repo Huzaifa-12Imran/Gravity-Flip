@@ -11,7 +11,12 @@ class NetworkManager {
         this.isConnected = false;
 
         // Backend URL (Supports VITE_SERVER_URL environment variable for production)
-        this.serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+        let rawUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+        if (rawUrl && !rawUrl.startsWith('http')) {
+            rawUrl = 'https://' + rawUrl;
+        }
+        this.serverUrl = rawUrl;
+        console.log('[NetworkManager] Targeting server:', this.serverUrl);
 
         EventBus.on('color-change', (color) => {
             if (this.player) {

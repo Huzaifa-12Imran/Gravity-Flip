@@ -148,7 +148,13 @@ export default function MultiplayerLobby({ onBack }) {
 
                 {view === 'create' && (
                     <div className="flex flex-col gap-4 animate-scale-up">
-                        {NetworkManager.isConnected ? null : <div className="text-xs text-red-500 font-bold mb-2">⚠ NOT CONNECTED TO SERVER. Is the Node.js backend running on port 3001?</div>}
+                        {NetworkManager.isConnected ? null : (
+                            <div className="text-xs text-red-500 font-bold mb-2">
+                                ⚠ NOT CONNECTED TO SERVER. {import.meta.env.DEV
+                                    ? 'Is the Node.js backend running on port 3001?'
+                                    : 'Check VITE_SERVER_URL and ensure the backend is live.'}
+                            </div>
+                        )}
                         <p className="text-[11px] text-slate-400 font-bold uppercase italic leading-relaxed">"Initializing a new neural node. Unique room code will be generated upon confirmation."</p>
                         <button onClick={handleCreate} className="premium-gradient p-4 rounded-xl text-white font-black italic uppercase tracking-widest hover:scale-[1.02] transition-all" disabled={!NetworkManager.isConnected}>
                             {NetworkManager.isConnected ? "ESTABLISH NODE" : "WAITING FOR SERVER..."}
