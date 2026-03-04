@@ -14,6 +14,9 @@ export default function MultiplayerLobby({ onBack }) {
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
+        // Initiate connection as soon as the lobby is opened
+        NetworkManager.connect();
+
         const onRoomUpdate = ({ roomCode, player, players: initialPlayers }) => {
             setView('lobby');
             setPlayers([...initialPlayers]);
@@ -27,23 +30,31 @@ export default function MultiplayerLobby({ onBack }) {
             if (me) setReady(me.ready);
         };
 
+        const onNetworkStatus = ({ connected }) => {
+            // Force re-render to update connection-dependent UI
+            setPlayers(prev => [...prev]);
+            if (connected) setError('');
+        };
+
         const onNetworkError = (msg) => {
             setError(msg);
             AudioManager.playBlip(220, 0.1);
         };
 
-        const onMultiplayerStart = ({ seed, players: startPlayers }) => {
+        const onMultiplayerStart = ({ seed }) => {
             // App component handles the transition to game scene
         };
 
         EventBus.on('room-update', onRoomUpdate);
         EventBus.on('players-update', onPlayersUpdate);
+        EventBus.on('network-status', onNetworkStatus);
         EventBus.on('network-error', onNetworkError);
         EventBus.on('multiplayer-start', onMultiplayerStart);
 
         return () => {
             EventBus.off('room-update', onRoomUpdate);
             EventBus.off('players-update', onPlayersUpdate);
+            EventBus.off('network-status', onNetworkStatus);
             EventBus.off('network-error', onNetworkError);
             EventBus.off('multiplayer-start', onMultiplayerStart);
         };
@@ -98,6 +109,9 @@ export default function MultiplayerLobby({ onBack }) {
                 </div>
 
                 {error && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-widest animate-shake">{error}</div>}
+                <div className="text-[8px] font-mono text-slate-500 uppercase tracking-tighter opacity-50 px-1">
+                    Target: {NetworkManager.serverUrl} | Status: {NetworkManager.isConnected ? 'Connected' : 'Searching...'}
+                </div>
 
                 {/* Name Input */}
                 {view !== 'lobby' && (

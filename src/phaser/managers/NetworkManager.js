@@ -11,12 +11,15 @@ class NetworkManager {
         this.isConnected = false;
 
         // Backend URL (Supports VITE_SERVER_URL environment variable for production)
-        let rawUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+        let rawUrl = (import.meta.env.VITE_SERVER_URL || 'http://localhost:3001').trim();
+
+        // Ensure protocol exists
         if (rawUrl && !rawUrl.startsWith('http')) {
             rawUrl = 'https://' + rawUrl;
         }
+
         this.serverUrl = rawUrl;
-        console.log('[NetworkManager] Targeting server:', this.serverUrl);
+        console.log('[NetworkManager] Target Server URL:', this.serverUrl);
 
         EventBus.on('color-change', (color) => {
             if (this.player) {
@@ -31,16 +34,24 @@ class NetworkManager {
     }
 
     connect() {
-        if (this.socket) return;
+        if (this.socket && this.socket.connected) return;
+        if (this.socket) this.socket.disconnect();
 
-        this.socket = io(this.serverUrl, {
-            transports: ['websocket']
-        });
+        console.log('[NetworkManager] Initiating connection to:', this.serverUrl);
+
+        // Remove 'transports' restriction to allow polling fallback if WS is blocked
+        this.socket = io(this.serverUrl);
 
         this.socket.on('connect', () => {
-            console.log('[NetworkManager] Connected to server');
+            console.log('[NetworkManager] Successfully connected to server ID:', this.socket.id);
             this.isConnected = true;
             EventBus.emit('network-status', { connected: true });
+        });
+
+        this.socket.on('connect_error', (err) => {
+            console.error('[NetworkManager] Connection failed:', err.message);
+            this.isConnected = false;
+            EventBus.emit('network-status', { connected: false });
         });
 
         this.socket.on('disconnect', () => {
