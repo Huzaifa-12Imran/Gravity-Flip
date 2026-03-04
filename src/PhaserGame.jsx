@@ -1,14 +1,21 @@
 // src/PhaserGame.jsx
-// React component that mounts and owns the Phaser.Game instance.
-// Uses useRef/useEffect to create game on mount, destroy on unmount.
-
 import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import PhaserConfig from './phaser/config';
+import EventBus from './eventBus';
 
-export default function PhaserGame({ onGameReady }) {
+export default function PhaserGame({ sceneData }) {
     const containerRef = useRef(null);
     const gameRef = useRef(null);
+
+    // Watch for sceneData changes (e.g. when restarting or starting multiplayer)
+    useEffect(() => {
+        if (gameRef.current && sceneData) {
+            console.log('[PhaserGame] sceneData updated:', sceneData);
+            // We can pass data to the current scene or store it in the registry
+            gameRef.current.registry.set('sceneData', sceneData);
+        }
+    }, [sceneData]);
 
     useEffect(() => {
         if (gameRef.current) return;
@@ -20,10 +27,13 @@ export default function PhaserGame({ onGameReady }) {
 
         gameRef.current = new Phaser.Game(config);
 
-        // Expose a global flag for App.jsx to check if it missed the ready event
-        window.phaserGameReady = true;
+        // Store initial sceneData if present
+        if (sceneData) {
+            gameRef.current.registry.set('sceneData', sceneData);
+        }
 
-        if (onGameReady) onGameReady(gameRef.current);
+        window.phaserGameReady = true;
+        EventBus.emit('scene-ready');
 
         return () => {
             if (gameRef.current) {
@@ -31,7 +41,7 @@ export default function PhaserGame({ onGameReady }) {
                 gameRef.current = null;
             }
         };
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div

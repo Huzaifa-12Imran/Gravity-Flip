@@ -3,14 +3,23 @@
 import Phaser from 'phaser';
 
 export default class Stickman {
-    constructor(scene, x, y) {
+    constructor(scene, x, y, isRemote = false, config = {}) {
         this.scene = scene;
         this.x = x;
         this.y = y;
+        this.isRemote = isRemote;
 
-        // Default premium color: Indigo 500
-        this.color = 0x6366f1;
-        this.colorHex = '#6366f1';
+        // Default premium color: Indigo 500 or from config
+        const rawColor = config.color || '#6366f1';
+        if (typeof rawColor === 'string') {
+            this.colorHex = rawColor;
+            this.color = parseInt(rawColor.replace('#', ''), 16);
+        } else {
+            // Assume it's already a number
+            this.color = rawColor;
+            this.colorHex = '#' + rawColor.toString(16).padStart(6, '0');
+        }
+        this.playerName = config.name || '';
 
         // Physics body: Using 'particle' as a safe key for the dummy physics body
         this.body = scene.physics.add.image(x, y, 'particle');
@@ -20,9 +29,25 @@ export default class Stickman {
         this.body.body.setSize(22, 54);
         this.body.body.allowGravity = false;
 
+        // Rendering offsets to prevent perfect stacking
+        this.renderOffsetX = this.isRemote ? (Math.random() > 0.5 ? 1 : -1) * (15 + Math.random() * 25) : 0;
+        this.renderOffsetY = this.isRemote ? (Math.random() - 0.5) * 10 : 0;
+
         // Graphics for drawing stickman
         this.gfx = scene.add.graphics();
-        this.gfx.setDepth(10);
+        this.gfx.setDepth(this.isRemote ? 9 : 10); // Local player on top
+
+        // Player Name Label (for remote players or all)
+        if (this.playerName) {
+            this.nameLabel = scene.add.text(x, y - 50, this.playerName, {
+                fontSize: '12px',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: '900',
+                color: this.colorHex,
+                backgroundColor: 'rgba(2, 6, 23, 0.6)',
+                padding: { x: 6, y: 2 }
+            }).setOrigin(0.5).setDepth(11);
+        }
 
         // Animation state
         this.animPhase = 0; // 0 to 1 cycle
@@ -36,11 +61,28 @@ export default class Stickman {
         this.maxTrail = 12;
         this.trailGraphics = scene.add.graphics();
         this.trailGraphics.setDepth(9); // Just below the main character
+
+        // Target state for interpolation (Remote players only)
+        this.targetState = { x, y, yScale: 1, animPhase: 0, gravityFlipped: false };
     }
 
-    setColor(hexString) {
-        this.colorHex = hexString;
-        this.color = parseInt(hexString.replace('#', ''), 16);
+    setColor(rawColor) {
+        if (typeof rawColor === 'string') {
+            this.colorHex = rawColor;
+            this.color = parseInt(rawColor.replace('#', ''), 16);
+        } else {
+            this.color = rawColor;
+            this.colorHex = '#' + rawColor.toString(16).padStart(6, '0');
+        }
+        if (this.nameLabel) {
+            this.nameLabel.setColor(this.colorHex);
+        }
+    }
+
+    setRemoteState(state) {
+        if (!this.isRemote) return;
+        this.targetState = { ...state };
+        this.gravityFlipped = state.gravityFlipped;
     }
 
     flipGravity() {
@@ -84,6 +126,7 @@ export default class Stickman {
             onComplete: () => this.gfx.clear(),
         });
 
+        if (this.nameLabel) this.nameLabel.destroy();
         this.trailGraphics.clear();
         this.body.destroy();
     }
@@ -126,8 +169,8 @@ export default class Stickman {
         const g = this.gfx;
         g.clear();
 
-        const cx = this.body.x;
-        const cy = this.body.y;
+        const cx = this.body.x + this.renderOffsetX;
+        const cy = this.body.y + this.renderOffsetY;
         const color = this.color;
         const phase = this.animPhase;
         const scale = this.yScale;
@@ -143,66 +186,44 @@ export default class Stickman {
         const limbColor = color;
         g.lineStyle(strokeWidth, limbColor, 1);
 
+        // Alpha reduction for remote players to focus on local
+        if (this.isRemote) g.setAlpha(0.85);
+
         // 1. Head
         const headPos = tx(0, -22);
         g.lineStyle(2, limbColor, 1);
         g.strokeCircle(headPos.x, headPos.y, 7);
 
-        // 2. Torso (Bending slightly based on cycle)
+        // 2. Torso
         const torsoLean = Math.sin(phase * Math.PI * 2) * 0.08;
         const neck = tx(torsoLean * 15, -15);
         const waist = tx(0, 8);
         g.lineStyle(strokeWidth, limbColor, 1);
         g.lineBetween(neck.x, neck.y, waist.x, waist.y);
 
-        // 3. Limbs Helper (Skeletal/Jointed)
+        // 3. Limbs Helper
         const drawJointedLimb = (start, phaseOffset, isArm) => {
             const p = (phase + phaseOffset) % 1;
-
-            // Primary angle (Upper segment)
-            const angle1 = isArm
-                ? Math.sin(p * Math.PI * 2) * 45 + 10
-                : Math.sin(p * Math.PI * 2) * 45;
-
-            // Secondary angle (Lower segment / Joint)
-            const angle2 = isArm
-                ? Math.sin(p * Math.PI * 2 - 0.5) * 40 + 40
-                : Math.sin(p * Math.PI * 2 - 1) * 35 + 45;
-
-            // Segment 1 (Upper)
+            const angle1 = isArm ? Math.sin(p * Math.PI * 2) * 45 + 10 : Math.sin(p * Math.PI * 2) * 45;
+            const angle2 = isArm ? Math.sin(p * Math.PI * 2 - 0.5) * 40 + 40 : Math.sin(p * Math.PI * 2 - 1) * 35 + 45;
             const rad1 = Phaser.Math.DegToRad(isArm ? angle1 + 180 : angle1 + 90);
             const seg1Len = isArm ? 11 : 14;
-            // Apply scale to vertical offset only
-            const joint = {
-                x: start.x + Math.cos(rad1) * seg1Len,
-                y: start.y + Math.sin(rad1) * seg1Len * scale
-            };
-
-            // Segment 2 (Lower)
+            const joint = { x: start.x + Math.cos(rad1) * seg1Len, y: start.y + Math.sin(rad1) * seg1Len * scale };
             const rad2 = rad1 + Phaser.Math.DegToRad(isArm ? -angle2 : angle2);
             const seg2Len = isArm ? 10 : 13;
-            // Apply scale to vertical offset only
-            const end = {
-                x: joint.x + Math.cos(rad2) * seg2Len,
-                y: joint.y + Math.sin(rad2) * seg2Len * scale
-            };
-
+            const end = { x: joint.x + Math.cos(rad2) * seg2Len, y: joint.y + Math.sin(rad2) * seg2Len * scale };
             g.lineBetween(start.x, start.y, joint.x, joint.y);
             g.lineBetween(joint.x, joint.y, end.x, end.y);
             return { end };
         };
 
-        // Arms (shoulder is 80% up the torso)
         const shoulder = { x: neck.x * 0.8 + waist.x * 0.2, y: neck.y * 0.8 + waist.y * 0.2 };
         const lHandInfo = drawJointedLimb(shoulder, 0.5, true);
         const rHandInfo = drawJointedLimb(shoulder, 0, true);
-
-        // Legs
         const hip = waist;
         const lFootInfo = drawJointedLimb(hip, 0, false);
         const rFootInfo = drawJointedLimb(hip, 0.5, false);
 
-        // 4. Rounded Hands & Feet
         g.fillStyle(limbColor, 1);
         g.fillCircle(lHandInfo.end.x, lHandInfo.end.y, 3.5);
         g.fillCircle(rHandInfo.end.x, rHandInfo.end.y, 3.5);
@@ -213,18 +234,23 @@ export default class Stickman {
     update() {
         if (this.isDead) return;
 
-        // Advance animation phase based on current scroll speed
         const speed = this.scene.obstacleManager ? this.scene.obstacleManager.getScrollSpeed() : 300;
         const phaseIncrement = (this.scene.gameStarted ? (speed / 1000) * 0.08 : 0);
         this.animPhase = (this.animPhase + phaseIncrement) % 1;
 
-        // Update trail
-        this.trail.push({
-            x: this.body.x,
-            y: this.body.y,
-            phase: this.animPhase,
-            scale: this.yScale
-        });
+        if (this.isRemote) {
+            // Smoothly interpolate towards target state
+            const LERP_FACTOR = 0.2;
+            this.body.y += (this.targetState.y - this.body.y) * LERP_FACTOR;
+            this.yScale += (this.targetState.yScale - this.yScale) * LERP_FACTOR;
+            // animPhase is intentionally not lerped here anymore to avoid network stutter when looping 1 -> 0
+        }
+
+        if (this.nameLabel) {
+            this.nameLabel.setPosition(this.body.x + this.renderOffsetX, this.body.y + this.renderOffsetY - 50 * (this.yScale > 0 ? 1 : -1));
+        }
+
+        this.trail.push({ x: this.body.x + this.renderOffsetX, y: this.body.y + this.renderOffsetY, phase: this.animPhase, scale: this.yScale });
         if (this.trail.length > this.maxTrail) this.trail.shift();
 
         this._drawPhantomTrail();
@@ -237,6 +263,7 @@ export default class Stickman {
         if (this.flipTween) this.flipTween.stop();
         this.gfx.destroy();
         this.trailGraphics.destroy();
+        if (this.nameLabel) this.nameLabel.destroy();
         if (this.body && this.body.active) this.body.destroy();
     }
 }

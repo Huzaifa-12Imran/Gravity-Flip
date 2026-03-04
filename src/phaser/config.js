@@ -26,6 +26,10 @@ const PhaserConfig = {
         pixelArt: false,
         roundPixels: false,
     },
+    // Prevent game from pausing when tab loses focus (essential for multi-tab testing)
+    pauseOnBlur: false,
+    // Disable automatic pausing when FPS drops (common in background tabs)
+    autoPauseLowFPS: false,
 };
 
 export default PhaserConfig;

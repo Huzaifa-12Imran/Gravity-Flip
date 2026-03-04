@@ -1,5 +1,7 @@
 // src/phaser/managers/ObstacleManager.js
 import Phaser from 'phaser';
+import SeededRandom from '../../utils/SeededRandom';
+
 // Obstacle Manager with updated design: Slate walls, Amber warnings.
 const SCROLL_SPEED_INITIAL = 280;
 const SCROLL_SPEED_MAX = 600;
@@ -21,8 +23,14 @@ export default class ObstacleManager {
         this.speedTimer = null;
         this.spawnDelay = 1600;
         this.spawnDelayMin = 650;
+        this.random = new SeededRandom(1); // Default seed
 
         this._createPools();
+    }
+
+    setSeed(seed) {
+        console.log('[ObstacleManager] Setting seed:', seed);
+        this.random = new SeededRandom(seed);
     }
 
     _createPools() {
@@ -70,7 +78,9 @@ export default class ObstacleManager {
     _spawnObstacle() {
         const GW = this.scene.scale.width;
         const GH = this.scene.scale.height;
-        const def = OBSTACLES[Math.floor(Math.random() * OBSTACLES.length)];
+
+        // Use SeededRandom instead of Math.random
+        const def = this.random.pick(OBSTACLES);
         const obj = this.pools[def.type].get();
         if (!obj) return;
 
@@ -83,16 +93,16 @@ export default class ObstacleManager {
         const offset = 4;
 
         if (def.type === 'platform') {
-            if (Math.random() < 0.5) {
-                y = Phaser.Math.Between(GH * 0.22, GH * 0.38);
+            if (this.random.next() < 0.5) {
+                y = this.random.between(GH * 0.22, GH * 0.38);
             } else {
-                y = Phaser.Math.Between(GH * 0.62, GH * 0.78);
+                y = this.random.between(GH * 0.62, GH * 0.78);
             }
             // Laser: High-contrast Alert color (Amber 500)
             obj.setTint(0xf59e0b);
             obj.setAlpha(0.9);
         } else {
-            if (Math.random() < 0.5) {
+            if (this.random.next() < 0.5) {
                 y = 480 + 26 - def.h / 2 - offset;
             } else {
                 y = 60 - 26 + def.h / 2 + offset;
