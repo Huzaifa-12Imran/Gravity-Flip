@@ -72,10 +72,10 @@ class NetworkManager {
                 this.sendColorUpdate(savedColor);
             }
 
-            EventBus.emit('room-update', { roomCode, player, players: this.players });
+            EventBus.emit('room-update', { roomCode, player, players: this.players, theme: player.theme });
         });
 
-        this.socket.on('room-joined', ({ roomCode, player, players, seed }) => {
+        this.socket.on('room-joined', ({ roomCode, player, players, seed, theme }) => {
             this.roomCode = roomCode;
             this.player = player;
             this.players = players;
@@ -87,7 +87,7 @@ class NetworkManager {
                 this.sendColorUpdate(savedColor);
             }
 
-            EventBus.emit('room-update', { roomCode, player, players: this.players, seed });
+            EventBus.emit('room-update', { roomCode, player, players: this.players, seed, theme });
         });
 
         this.socket.on('player-joined', ({ player }) => {
@@ -120,8 +120,10 @@ class NetworkManager {
             EventBus.emit('players-update', [...this.players]);
         });
 
-        this.socket.on('start-game', ({ seed }) => {
-            EventBus.emit('multiplayer-start', { seed });
+        this.socket.on('start-game', ({ seed, theme, players }) => {
+            console.log('[NetworkManager] Received start-game from server:', { seed, theme });
+            if (players) this.players = players;
+            EventBus.emit('multiplayer-start', { seed, theme, players: this.players });
         });
 
         this.socket.on('remote-player-update', ({ playerId, state }) => {
@@ -143,9 +145,9 @@ class NetworkManager {
         });
     }
 
-    createRoom(playerName, playerColor) {
+    createRoom(playerName, playerColor, theme) {
         if (!this.isConnected) this.connect();
-        this.socket.emit('create-room', { playerName, playerColor });
+        this.socket.emit('create-room', { playerName, playerColor, theme });
     }
 
     joinRoom(roomCode, playerName, playerColor) {

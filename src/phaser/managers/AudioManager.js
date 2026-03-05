@@ -124,6 +124,7 @@ class AudioManager {
     startMusic() {
         this._init();
         this._initMusic();
+        this.isMusicPaused = false;
         if (this.isMusicPlaying) return;
 
         this.isMusicPlaying = true;
@@ -131,9 +132,24 @@ class AudioManager {
         this._scheduleNextBeat();
     }
 
+    pauseMusic() {
+        this.isMusicPaused = true;
+        if (this.musicGain) {
+            this.musicGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
+        }
+    }
+
+    resumeMusic() {
+        this.isMusicPaused = false;
+        if (this.isMusicPlaying && this.musicGain) {
+            this.musicGain.gain.linearRampToValueAtTime(this.masterVolume * 0.4, this.ctx.currentTime + 0.2);
+        }
+    }
+
     stopMusic() {
         if (!this.isMusicPlaying) return;
         this.isMusicPlaying = false;
+        this.isMusicPaused = false;
         if (this.musicGain) {
             this.musicGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
         }
@@ -143,7 +159,9 @@ class AudioManager {
         if (!this.isMusicPlaying) return;
 
         const time = this.ctx.currentTime;
-        this._playNote(time);
+        if (!this.isMusicPaused) {
+            this._playNote(time);
+        }
 
         // Schedule next beat
         setTimeout(() => this._scheduleNextBeat(), this.beatInterval * 1000);

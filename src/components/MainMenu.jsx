@@ -1,14 +1,30 @@
-// src/components/MainMenu.jsx
 import { useState, useEffect } from 'react';
 import AudioManager from '../phaser/managers/AudioManager';
+import EnvironmentSelector from './EnvironmentSelector';
 
 export default function MainMenu({ onStart, onMultiplayer }) {
     const [highScore, setHighScore] = useState(0);
+    // 'main' | 'env-solo'
+    const [step, setStep] = useState('main');
 
     useEffect(() => {
         const stored = localStorage.getItem('gfzp-highscore');
         if (stored) setHighScore(parseInt(stored, 10));
     }, []);
+
+    // Solo: after environment chosen, launch
+    const handleEnvSelected = (theme) => {
+        onStart({ theme });
+    };
+
+    if (step === 'env-solo') {
+        return (
+            <EnvironmentSelector
+                onSelect={handleEnvSelected}
+                onBack={() => setStep('main')}
+            />
+        );
+    }
 
     return (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 sm:p-12 overflow-y-auto">
@@ -41,11 +57,11 @@ export default function MainMenu({ onStart, onMultiplayer }) {
                 {/* Main Bento Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
 
-                    {/* Solo Action */}
+                    {/* Solo Action — goes to env selector */}
                     <button
                         onClick={() => {
-                            AudioManager.playStart();
-                            onStart();
+                            AudioManager.playBlip(550, 0.05);
+                            setStep('env-solo');
                         }}
                         onMouseEnter={() => AudioManager.playBlip(440, 0.05)}
                         className="md:col-span-2 bento-card p-1 text-left premium-gradient group cursor-pointer"
@@ -55,12 +71,17 @@ export default function MainMenu({ onStart, onMultiplayer }) {
                                 Neural Uplink
                             </span>
                             <div className="flex items-end justify-between">
-                                <h3 className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">
-                                    SOLO EMULATION
-                                </h3>
+                                <div className="flex flex-col">
+                                    <h3 className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">
+                                        SOLO EMULATION
+                                    </h3>
+                                    <span className="text-[9px] text-white/40 font-bold uppercase mt-1 tracking-widest">
+                                        Pick your world →
+                                    </span>
+                                </div>
                                 <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-all">
                                     <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white group-hover:fill-indigo-600">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                                        <path d="M8 5v14l11-7z" />
                                     </svg>
                                 </div>
                             </div>
@@ -71,7 +92,7 @@ export default function MainMenu({ onStart, onMultiplayer }) {
                     <button
                         onClick={() => {
                             AudioManager.playStart();
-                            onMultiplayer();
+                            onMultiplayer({});
                         }}
                         onMouseEnter={() => AudioManager.playBlip(660, 0.05)}
                         className="bento-card p-1 text-left bg-indigo-500/20 border border-indigo-500/30 group cursor-pointer hover:bg-indigo-500/40 transition-all"
@@ -85,7 +106,7 @@ export default function MainMenu({ onStart, onMultiplayer }) {
                                     MULTIPLAYER
                                 </h3>
                                 <p className="text-[9px] text-slate-500 font-bold uppercase mt-1">
-                                    Sync nodes <br /> with peers
+                                    Sync nodes <br />with peers
                                 </p>
                             </div>
                         </div>

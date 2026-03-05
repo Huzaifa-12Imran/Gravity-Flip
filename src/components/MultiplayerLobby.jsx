@@ -3,6 +3,15 @@ import { useState, useEffect } from 'react';
 import EventBus from '../eventBus';
 import NetworkManager from '../phaser/managers/NetworkManager';
 import AudioManager from '../phaser/managers/AudioManager';
+import { GAME_THEMES } from '../utils/GameThemes';
+
+const THEME_ACCENTS = {
+    default: { accent: '#6366f1', icon: '⬡' },
+    beach: { accent: '#38bdf8', icon: '🌊' },
+    italian: { accent: '#fbbf24', icon: '🏛' },
+    neon: { accent: '#00ff88', icon: '⚡' },
+    forest: { accent: '#52b788', icon: '🌿' },
+};
 
 export default function MultiplayerLobby({ onBack }) {
     const [view, setView] = useState('selection'); // 'selection' | 'create' | 'join' | 'lobby'
@@ -12,15 +21,18 @@ export default function MultiplayerLobby({ onBack }) {
     const [localPlayer, setLocalPlayer] = useState(null);
     const [error, setError] = useState('');
     const [ready, setReady] = useState(false);
+    const [lobbyTheme, setLobbyTheme] = useState(() => localStorage.getItem('gfzp-selected-theme') || 'default');
+    const [createTheme, setCreateTheme] = useState(() => localStorage.getItem('gfzp-selected-theme') || 'default');
 
     useEffect(() => {
         // Initiate connection as soon as the lobby is opened
         NetworkManager.connect();
 
-        const onRoomUpdate = ({ roomCode, player, players: initialPlayers }) => {
+        const onRoomUpdate = ({ roomCode, player, players: initialPlayers, theme }) => {
             setView('lobby');
             setPlayers([...initialPlayers]);
             setLocalPlayer({ ...player });
+            if (theme) setLobbyTheme(theme);
             setError('');
         };
 
@@ -63,9 +75,10 @@ export default function MultiplayerLobby({ onBack }) {
     const handleCreate = () => {
         if (!playerName) { setError('Name required'); return; }
         const playerColor = sessionStorage.getItem('gf-player-color') || '#6366f1';
-        console.log('[MultiplayerLobby] handleCreate: color=', playerColor);
+        console.log('[MultiplayerLobby] handleCreate: color=', playerColor, 'theme=', createTheme);
         sessionStorage.setItem('gf-player-name', playerName);
-        NetworkManager.createRoom(playerName, playerColor);
+        localStorage.setItem('gfzp-selected-theme', createTheme);
+        NetworkManager.createRoom(playerName, playerColor, createTheme);
         AudioManager.playBlip(600, 0.05);
     };
 
@@ -169,7 +182,55 @@ export default function MultiplayerLobby({ onBack }) {
                                     : 'Check VITE_SERVER_URL and ensure the backend is live.'}
                             </div>
                         )}
-                        <p className="text-[11px] text-slate-400 font-bold uppercase italic leading-relaxed">"Initializing a new neural node. Unique room code will be generated upon confirmation."</p>
+
+                        {/* Environment Picker */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Select Environment</label>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {Object.entries(GAME_THEMES).map(([key, theme]) => {
+                                    const meta = THEME_ACCENTS[key];
+                                    const isSel = createTheme === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => { setCreateTheme(key); AudioManager.playBlip(550, 0.05); }}
+                                            title={theme.name}
+                                            style={{
+                                                flex: '1 1 72px',
+                                                minWidth: '68px',
+                                                padding: '8px 4px',
+                                                borderRadius: '10px',
+                                                border: isSel ? `1.5px solid ${meta.accent}` : '1.5px solid rgba(255,255,255,0.08)',
+                                                background: isSel ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.04)',
+                                                transform: isSel ? 'scale(1.06)' : 'scale(1)',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                transition: 'all 0.2s ease',
+                                            }}>
+                                            <div style={{
+                                                width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+                                                background: `linear-gradient(135deg, ${theme.bgGradient[0]}, ${theme.bgGradient[1]})`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: 16,
+                                            }}>
+                                                {meta.icon}
+                                            </div>
+                                            <span style={{
+                                                fontSize: 9, fontWeight: 900, textTransform: 'uppercase',
+                                                letterSpacing: '0.05em', lineHeight: 1,
+                                                color: isSel ? meta.accent : '#475569',
+                                            }}>
+                                                {theme.name}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         <button onClick={handleCreate} className="premium-gradient p-4 rounded-xl text-white font-black italic uppercase tracking-widest hover:scale-[1.02] transition-all" disabled={!NetworkManager.isConnected}>
                             {NetworkManager.isConnected ? "ESTABLISH NODE" : "WAITING FOR SERVER..."}
                         </button>
@@ -185,9 +246,17 @@ export default function MultiplayerLobby({ onBack }) {
                                 <span className="text-[9px] font-black text-slate-500 uppercase">Room Link Hash</span>
                                 <span className="text-2xl font-black text-indigo-500 tracking-widest">{NetworkManager.roomCode}</span>
                             </div>
-                            <div className="text-right">
-                                <span className="text-[9px] font-black text-slate-500 uppercase">Synchronized</span>
-                                <div className="flex gap-1 justify-end">
+                            <div className="text-right flex flex-col items-end gap-1">
+                                <span className="text-[9px] font-black text-slate-500 uppercase">Environment</span>
+                                <div className="flex items-center gap-2 px-2 py-1 rounded-lg"
+                                    style={{ background: `rgba(0,0,0,0.3)`, border: `1px solid ${THEME_ACCENTS[lobbyTheme]?.accent || '#6366f1'}44` }}>
+                                    <span className="text-base">{THEME_ACCENTS[lobbyTheme]?.icon || '⬡'}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-wider"
+                                        style={{ color: THEME_ACCENTS[lobbyTheme]?.accent || '#6366f1' }}>
+                                        {GAME_THEMES[lobbyTheme]?.name || lobbyTheme}
+                                    </span>
+                                </div>
+                                <div className="flex gap-1 mt-1">
                                     {players.map((_, i) => <div key={i} className="w-1.5 h-1.5 rounded-full bg-indigo-500" />)}
                                 </div>
                             </div>

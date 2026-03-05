@@ -1,5 +1,5 @@
 // src/App.jsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PhaserGame from './PhaserGame';
 import HUD from './components/HUD';
 import CharacterCustomizer from './components/CharacterCustomizer';
@@ -17,7 +17,13 @@ export default function App() {
   const [finalDistance, setFinalDistance] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isSpectating, setIsSpectating] = useState(false);
-  const [multiplayerData, setMultiplayerData] = useState(null);
+  const [sessionConfig, setSessionConfig] = useState(null);
+
+  // Use refs for listener stability - ensures handlers always have current state without re-registering
+  const stateRef = useRef({ gameState, sessionConfig, isPaused });
+  useEffect(() => {
+    stateRef.current = { gameState, sessionConfig, isPaused };
+  }, [gameState, sessionConfig, isPaused]);
 
   useEffect(() => {
     const onReady = () => setGameState(prev => (prev === 'idle' ? 'menu' : prev));
@@ -29,8 +35,9 @@ export default function App() {
     };
 
     const onStarted = () => {
+      console.log('[App] game-started received');
       setGameState('playing');
-      setIsPaused(false);
+      // DO NOT force isPaused to false here, as the user might have paused during countdown
     };
 
     const onLocalDeath = ({ score, distance }) => {
@@ -39,30 +46,40 @@ export default function App() {
       setIsSpectating(true);
     };
 
-    const onMultiStart = ({ seed }) => {
-      console.log('[App] Multiplayer match starting with seed:', seed);
+    const onMultiStart = ({ seed, theme, players }) => {
+      const playerName = NetworkManager.player?.name || 'Player';
+      const playerConfig = {
+        name: `${playerName} (You)`,
+        color: NetworkManager.player?.color || '#6366f1'
+      };
+
       const mData = {
         multiplayer: true,
         autoStart: true,
         seed,
-        players: [...NetworkManager.players],
-        playerConfig: { name: NetworkManager.player?.name, color: NetworkManager.player?.color }
+        players: players || [],
+        playerConfig,
+        theme: theme || 'default'
       };
-      setMultiplayerData(mData);
+      setSessionConfig(mData);
       setIsSpectating(false);
-      EventBus.emit('game-restart', mData);
       setGameState('playing');
+      EventBus.emit('game-restart', mData);
     };
 
-    const onMultiGameOver = ({ players }) => {
-      console.log('[App] All players dead, showing final summary');
+    const onMultiGameOver = () => {
       setIsSpectating(false);
       setGameState('dead');
-      // The GameOverModal will use finalScore/finalDistance set during onLocalDeath
     };
 
-    const onPause = () => setIsPaused(true);
-    const onResume = () => setIsPaused(false);
+    const onPause = () => {
+      console.log('[App] onPause received. Forcing isPaused = true');
+      setIsPaused(true);
+    };
+    const onResume = () => {
+      console.log('[App] onResume received. Forcing isPaused = false');
+      setIsPaused(false);
+    };
 
     EventBus.on('scene-ready', onReady);
     EventBus.on('game-started', onStarted);
@@ -87,21 +104,17 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.key === 'Escape' && gameState === 'playing' && !multiplayerData) {
-        if (isPaused) EventBus.emit('resume-game');
-        else EventBus.emit('pause-game');
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [gameState, isPaused, multiplayerData]);
+  // Use a simpler approach for the ESC key - rely on Phaser for emission
+  // and App.jsx for state management. 
 
-  const handleStartSolo = useCallback(() => {
-    setMultiplayerData(null);
+  const handleStartSolo = useCallback(({ theme }) => {
+    const themeKey = (theme || 'default').toLowerCase();
+    const sceneData = { theme: themeKey, autoStart: true, multiplayer: false };
+    setSessionConfig(sceneData);
     setGameState('playing');
-    EventBus.emit('start-game');
+    setIsPaused(false); // Reset pause state on new game
+    // Use game-restart so the scene restarts with theme baked into create(data)
+    EventBus.emit('game-restart', sceneData);
   }, []);
 
   const handleStartMulti = useCallback(() => {
@@ -114,33 +127,34 @@ export default function App() {
     setFinalDistance(0);
     setIsSpectating(false);
 
-    if (multiplayerData) {
+    if (sessionConfig?.multiplayer) {
       setGameState('lobby');
       // Tell Phaser to go back to "idle" or just wait
       EventBus.emit('quit-game');
     } else {
       setGameState('playing');
       setIsPaused(false);
-      EventBus.emit('game-restart', multiplayerData);
+      const restartData = { ...sessionConfig, autoStart: true };
+      EventBus.emit('game-restart', restartData);
     }
-  }, [multiplayerData]);
+  }, [sessionConfig]);
 
   const handleResume = useCallback(() => EventBus.emit('resume-game'), []);
 
   const handleQuit = useCallback(() => {
     EventBus.emit('resume-game');
     EventBus.emit('quit-game');
-    if (multiplayerData) NetworkManager.disconnect();
+    if (sessionConfig?.multiplayer) NetworkManager.disconnect();
     setGameState('menu');
     setIsPaused(false);
-    setMultiplayerData(null);
-  }, [multiplayerData]);
+    setSessionConfig(null);
+  }, [sessionConfig]);
 
   return (
     <div id="app-root" className="relative w-screen h-screen overflow-hidden bg-[#0f172a] font-inter">
       <div className="mesh-atmosphere" />
       <div className="relative z-10 w-full h-full text-white">
-        <PhaserGame sceneData={multiplayerData} />
+        <PhaserGame sceneData={sessionConfig} />
       </div>
       <div className="absolute inset-0 pointer-events-none z-20 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(circle at center, transparent 30%, rgba(2, 6, 23, 0.4) 100%)' }} />
@@ -157,7 +171,7 @@ export default function App() {
       <CharacterCustomizer visible={(gameState === 'playing' && !isPaused) || gameState === 'lobby'} />
       <SpectatorOverlay visible={isSpectating} score={finalScore} distance={finalDistance} />
 
-      {isPaused && gameState === 'playing' && !multiplayerData && (
+      {isPaused && gameState === 'playing' && (
         <PauseMenu onResume={handleResume} onQuit={handleQuit} />
       )}
 

@@ -20,8 +20,8 @@ const rooms = new Map();
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    socket.on('create-room', ({ playerName, playerColor }) => {
-        console.log(`[Server] create-room: name=${playerName}, color=${playerColor}`);
+    socket.on('create-room', ({ playerName, playerColor, theme }) => {
+        console.log(`[Server] create-room: name=${playerName}, color=${playerColor}, theme=${theme}`);
         const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -40,7 +40,8 @@ io.on('connection', (socket) => {
             code: roomCode,
             players: [player],
             gameStarted: false,
-            seed: Math.floor(Math.random() * 1000000)
+            seed: Math.floor(Math.random() * 1000000),
+            theme: theme || 'default'
         });
 
         socket.join(roomCode);
@@ -80,7 +81,7 @@ io.on('connection', (socket) => {
         room.players.push(player);
         socket.join(roomCode);
 
-        socket.emit('room-joined', { roomCode, player, players: room.players, seed: room.seed });
+        socket.emit('room-joined', { roomCode, player, players: room.players, seed: room.seed, theme: room.theme });
         socket.to(roomCode).emit('player-joined', { player });
         console.log(`User ${socket.id} joined room ${roomCode}`);
     });
@@ -98,7 +99,11 @@ io.on('connection', (socket) => {
             const allReady = room.players.every(p => p.ready);
             if (allReady && room.players.length >= 2) {
                 room.gameStarted = true;
-                io.to(roomCode).emit('start-game', { seed: room.seed });
+                io.to(roomCode).emit('start-game', {
+                    seed: room.seed,
+                    theme: room.theme,
+                    players: room.players
+                });
             }
         }
     });

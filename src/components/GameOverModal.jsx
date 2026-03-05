@@ -24,7 +24,6 @@ export default function GameOverModal({ visible, finalScore, finalDistance, onRe
     }, [visible, finalScore]);
 
     const handleRestart = () => {
-        EventBus.emit('game-restart');
         if (onRestart) onRestart();
     };
 

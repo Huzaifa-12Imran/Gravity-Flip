@@ -19,7 +19,8 @@ export default class Stickman {
             this.color = rawColor;
             this.colorHex = '#' + rawColor.toString(16).padStart(6, '0');
         }
-        this.playerName = config.name || '';
+        this.playerName = config.name || (this.isRemote ? 'Opponent' : 'You');
+        console.log(`[Stickman] Init: isRemote=${isRemote}, name=${this.playerName}`);
 
         // Physics body: Using 'particle' as a safe key for the dummy physics body
         this.body = scene.physics.add.image(x, y, 'particle');
@@ -35,7 +36,7 @@ export default class Stickman {
 
         // Graphics for drawing stickman
         this.gfx = scene.add.graphics();
-        this.gfx.setDepth(this.isRemote ? 9 : 10); // Local player on top
+        this.gfx.setDepth(this.isRemote ? 99 : 100); // Local player on top
 
         // Player Name Label (for remote players or all)
         if (this.playerName) {
@@ -46,7 +47,7 @@ export default class Stickman {
                 color: this.colorHex,
                 backgroundColor: 'rgba(2, 6, 23, 0.6)',
                 padding: { x: 6, y: 2 }
-            }).setOrigin(0.5).setDepth(11);
+            }).setOrigin(0.5).setDepth(101);
         }
 
         // Animation state
@@ -106,7 +107,10 @@ export default class Stickman {
 
         if (this.flipTween) this.flipTween.stop();
 
-        const particles = this.scene.add.particles(this.body.x, this.body.y, 'particle', {
+        const px = isNaN(this.body.x) ? this.x : this.body.x;
+        const py = isNaN(this.body.y) ? this.y : this.body.y;
+
+        const particles = this.scene.add.particles(px, py, 'particle', {
             speed: { min: 120, max: 350 },
             angle: { min: 0, max: 360 },
             scale: { start: 1.2, end: 0 },
@@ -142,7 +146,8 @@ export default class Stickman {
 
         const baseAlpha = Math.min((speed - 400) / 600, 0.4);
 
-        this.trail.forEach((snapshot, i) => {
+        for (let i = 0; i < this.trail.length; i++) {
+            const snapshot = this.trail[i];
             const alpha = (i / this.trail.length) * baseAlpha;
             tg.lineStyle(2, this.color, alpha);
 
@@ -154,7 +159,7 @@ export default class Stickman {
             const nPos = this._getSnapshotPos(snapshot, 0, -15);
             const wPos = this._getSnapshotPos(snapshot, 0, 8);
             tg.lineBetween(nPos.x, nPos.y, wPos.x, wPos.y);
-        });
+        }
     }
 
     _getSnapshotPos(snapshot, dx, dy) {
@@ -234,11 +239,15 @@ export default class Stickman {
     update() {
         if (this.isDead) return;
 
-        const speed = this.scene.obstacleManager ? this.scene.obstacleManager.getScrollSpeed() : 300;
-        const phaseIncrement = (this.scene.gameStarted ? (speed / 1000) * 0.08 : 0);
-        this.animPhase = (this.animPhase + phaseIncrement) % 1;
+        let speed = 300;
+        if (this.scene.obstacleManager) speed = this.scene.obstacleManager.getScrollSpeed();
+        if (isNaN(speed)) speed = 300;
 
-        if (this.isRemote) {
+        const phaseIncrement = (this.scene.gameStarted ? (speed / 1000) * 0.08 : 0);
+        const newPhase = ((this.animPhase || 0) + (phaseIncrement || 0)) % 1;
+        this.animPhase = isNaN(newPhase) ? 0 : newPhase;
+
+        if (this.isRemote && this.targetState) {
             // Smoothly interpolate towards target state
             const LERP_FACTOR = 0.2;
             this.body.y += (this.targetState.y - this.body.y) * LERP_FACTOR;

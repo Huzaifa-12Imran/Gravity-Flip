@@ -10,6 +10,8 @@ export default function HUD({ visible }) {
     const [players, setPlayers] = useState([]);
     const prevScore = useRef(0);
     const [scoreFlash, setScoreFlash] = useState(false);
+    const [colorTheme, setColorTheme] = useState('ORANGE');
+    const [difficulty, setDifficulty] = useState('EASY');
 
     useEffect(() => {
         const handler = ({ score: s, multiplier: m, distance: d }) => {
@@ -27,8 +29,18 @@ export default function HUD({ visible }) {
             setPlayers(updatedPlayers);
         };
 
+        const onColorChange = (data) => {
+            setColorTheme(data.name.toUpperCase());
+        };
+
+        const onDifficultyChange = (data) => {
+            setDifficulty(data.level);
+        };
+
         EventBus.on('score-update', handler);
         EventBus.on('players-update', onPlayersUpdate);
+        EventBus.on('obstacle-color-change', onColorChange);
+        EventBus.on('difficulty-change', onDifficultyChange);
 
         // Initial set
         if (NetworkManager.players.length > 0) {
@@ -38,6 +50,8 @@ export default function HUD({ visible }) {
         return () => {
             EventBus.off('score-update', handler);
             EventBus.off('players-update', onPlayersUpdate);
+            EventBus.off('obstacle-color-change', onColorChange);
+            EventBus.off('difficulty-change', onDifficultyChange);
         };
     }, []);
 
@@ -121,6 +135,19 @@ export default function HUD({ visible }) {
                 <span className="text-[8px] md:text-[9px] font-black text-slate-300 tracking-[0.4em] uppercase italic">
                     {isMultiplayer ? 'Networked Node Active' : 'Simulation Active'}
                 </span>
+            </div>
+
+            {/* Color Theme Display */}
+            <div className="col-span-2 md:col-span-12 bento-card px-4 md:px-6 py-2 flex items-center justify-center bg-white/5 border-white/5">
+                <div className="flex items-center gap-4">
+                    <span className="text-[8px] font-black text-slate-500 tracking-[0.3em] uppercase">Active Spectrum:</span>
+                    <span className="text-[10px] font-black text-indigo-400 tracking-[0.5em] animate-pulse">{colorTheme}</span>
+                    <div className="w-px h-3 bg-white/10 mx-2" />
+                    <span className="text-[8px] font-black text-slate-500 tracking-[0.3em] uppercase">Threat Level:</span>
+                    <span className={`text-[10px] font-black tracking-[0.5em] ${difficulty === 'EASY' ? 'text-emerald-400' : difficulty === 'MEDIUM' ? 'text-amber-400' : 'text-red-500 animate-pulse'}`}>
+                        {difficulty}
+                    </span>
+                </div>
             </div>
         </div>
     );
